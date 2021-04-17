@@ -7,7 +7,6 @@ def sender_hl7(message):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
         s.sendall(message.encode())
-        data = s.recv(10240)
     print('Sent from  ' + '(\'' +str(HOST) + '\', ' + str(PORT) + ')')
     print('Data sent!')
             
