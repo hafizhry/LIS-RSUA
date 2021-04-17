@@ -9,9 +9,12 @@ from komunikasi_alat_client import *
 from komunikasi_alat_server import *
 
 if __name__ == '__main__':
-    mes = listener_hl7()
-    pid = parse_pid(mes)
+    while True:
+        mes = listener_hl7()
+        print(mes)
+        mesHL7 = parse_message(mes)
+        pid = parse_pid(mesHL7)
 
-    my_db = CONNECT_db()
-    INSERT_db(pid, my_db, 'pid')
-    my_db.commit()
+        my_db = CONNECT_db()
+        INSERT_db(pid, my_db, 'pid')
+        my_db.commit()
