@@ -3,7 +3,7 @@ import mysql.connector
 from datetime import datetime
 from mysql.connector import Error, connect
 from getpass import getpass
-from parser_pesan import *
+from parser_pesan_hl7 import *
 from komunikasi_database import *
 from komunikasi_alat_client import *
 from komunikasi_alat_server import *
