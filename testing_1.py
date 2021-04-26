@@ -13,8 +13,8 @@ if __name__ == '__main__':
         mes = listener_hl7()
         print(mes)
         mesHL7 = parse_message(mes)
-        pid = parse_pid(mesHL7)
+        #pid = parse_pid(mesHL7)
 
         my_db = CONNECT_db()
-        INSERT_db(pid, my_db, 'pid')
+        INSERT_db(mesHL7, my_db, 'result_tes')
         my_db.commit()
