@@ -32,7 +32,6 @@ def listener_server():
             print('Connected to : ', addr[0], ' : ', addr[1])
             start_new_thread(threaded, (ssocket,))
             #ThreadCount += 1
-            retu
         s.close()
         
 if __name__ == '__main__':
