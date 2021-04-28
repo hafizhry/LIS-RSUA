@@ -1,27 +1,41 @@
 import socket
+from _thread import *
+import threading
 
 HOST = '127.0.0.1'  # The server's hostname or IP address
 PORT = 5050        # The port used by the server
+#ThreadCount = 0
 
-def listener_hl7():
+print_lock = threading.Lock()
+
+def threaded(ssocket):
+    while True:
+        data = ssocket.recv(10240)
+        print ("Server received data:", data)
+        #return data.decode()
+        if not data:
+            print_lock.release()
+            break
+        ssocket.sendall(data)
+    ssocket.close()
+
+def listener_server():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
+        print('Socket binded to port ', PORT)
         s.listen(5)
-        ssocket, addr = s.accept() #ssocket stands for server socket
-        with ssocket:
-            s.ioctl(socket.SIO_KEEPALIVE_VALS, (1, 10000, 3000))
-            print('Connected to ', addr)
-            while True:
-                data = ssocket.recv(10240)
-                return data.decode()
-                if not data:
-                    break
-                ssocket.sendall(data.decode())
+        print('Socket is listening')
         
+        while True:
+            ssocket, addr = s.accept() #ssocket stands for server socket
+            print_lock.acquire()
+            print('Connected to : ', addr[0], ' : ', addr[1])
+            start_new_thread(threaded, (ssocket,))
+            #ThreadCount += 1
+        s.close()
         
 if __name__ == '__main__':
     while True:
-        mes = listener_hl7()
-        print(mes)
-        
+        listener_server()
+                
 

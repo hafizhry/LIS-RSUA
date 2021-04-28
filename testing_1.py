@@ -11,6 +11,7 @@ from komunikasi_alat_server import *
 if __name__ == '__main__':
     while True:
         mes = listener_hl7()
+        print('Recieved mes')
         print(mes)
         mesHL7 = parse_message(mes)
         #pid = parse_pid(mesHL7)
