@@ -9,7 +9,7 @@ def CONNECT_db():
             host='localhost', 
             user='root', # user=input('Enter username:'),
             password='', # password=getpass('Enter password:'),
-            database='lis' # database=input('Enter database name:')
+            database='laravel_crud' # database=input('Enter database name:')
             )
         print('Connected to database')
         return connected_db

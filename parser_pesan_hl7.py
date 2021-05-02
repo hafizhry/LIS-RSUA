@@ -12,7 +12,7 @@ def parse_message(mes):
     incoming_mes = {
         "id_pasien" : str(parsed_mes[1][3]),
         "nama_pasien" : str(parsed_mes[1][5]),
-        "tanggal_lahir" : str(datetime.strptime(str(parsed_mes[1][7]), "%Y%m%d")),
+        "tanggal_lahir" : str(datetime.strptime(str(parsed_mes[1][7]), "%Y%m%d").date()),
         "jenis_kelamin" : str(parsed_mes[1][8]),
         "nilai" : str(parsed_mes[3][5]),
         "satuan" : str(parsed_mes[3][6]),
