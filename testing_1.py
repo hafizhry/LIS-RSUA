@@ -14,7 +14,8 @@ if __name__ == '__main__':
         print('Recieved mes')
         print(mes)
         mesHL7 = parse_message(mes)
-        
+        pid = parse_pid(mesHL7)
+
         my_db = CONNECT_db()
-        INSERT_db(mesHL7, my_db, 'result_tes')
+        INSERT_db(pid, my_db, 'pid')
         my_db.commit()

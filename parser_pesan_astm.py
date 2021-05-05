@@ -24,7 +24,7 @@ mes1 += 'R|36|^^^^Left_Shift?|0||||||||||20010806120000\r'
 mes1 += 'R|37|^^^^Atypical_Lympho?|0||||||||||20010806120000\r'
 mes1 += 'R|38|^^^^RBC_Lyse_Resistance?|10||||||||||20010806120000 \r'
 mes1 += 'R|39|^^^^Abn_Lympho/Blasts?|100|||A||||||20010806120000\r'
-mes1 += 'R|46|^^^^ACTION_MESSAGE_Delta||||A'
+mes1 += 'R|46|^^^^ACTION_MESSAGE_Delta||||A\r'
 mes1 += 'R|47|^^^^SCAT_DIFF|PNG&R&20010806&R&2001_08_06_12_00_1234567890_DIFF.PNG|||N||||||20010806120000\r'
 mes1 += 'L|1|N\r'
 
@@ -34,6 +34,11 @@ def is_number(string):
         return True
     except ValueError:
         return False
+
+def is_null(string):
+    if string == "":
+        return True
+    return False
 
 mes_split = []
 incoming_mes = {"barcode" : [],
@@ -46,7 +51,7 @@ incoming_mes = {"barcode" : [],
         "nilai_acuan" : [],
         "penanda_abnormal" : [],}
 
-mes_split = mes0.splitlines()
+mes_split = mes1.splitlines()
 #mes_split = [mes for line in mes_split for mes in line.split('\r')]
 #print(mes_split)
 
@@ -55,10 +60,10 @@ for mes in mes_split:
         pass
     elif mes[0] == 'P':
         mes = mes.split('|')
-        incoming_mes['barcode'].append(int(mes[4]))
-        incoming_mes['nama_pasien'].append(mes[5])
-        incoming_mes['tanggal_lahir'].append(str(datetime.strptime(mes[7], "%Y%m%d").date()))
-        incoming_mes['jenis_kelamin'].append(mes[8])
+        incoming_mes['barcode'] = int(mes[4])
+        incoming_mes['nama_pasien'] = mes[5]
+        incoming_mes['tanggal_lahir'] = str(datetime.strptime(mes[7], "%Y%m%d").date())
+        incoming_mes['jenis_kelamin'] = mes[8]
     elif mes[0] == 'C':
         pass
     elif mes[0] == 'O':
@@ -66,22 +71,31 @@ for mes in mes_split:
     elif mes[0] == 'R':
         mes = mes.split('|')
         incoming_mes['parameter'].append(mes[2])
+
         if is_number(mes[3]):
             incoming_mes['nilai'].append(float(mes[3]))
         else:
             incoming_mes['nilai'].append('NULL')
-        incoming_mes['satuan'].append(mes[4])
-        incoming_mes['nilai_acuan'].append(mes[5])
-        incoming_mes['penanda_abnormal'].append(mes[6])
+
+        if is_null(mes[4]):
+            incoming_mes['satuan'].append('NULL')
+        else:
+            incoming_mes['satuan'].append(mes[4])
+
+        if is_null(mes[5]):
+            incoming_mes['nilai_acuan'].append('NULL')
+        else:
+            incoming_mes['nilai_acuan'].append(mes[5])
+
+        if is_null(mes[6]):
+            incoming_mes['penanda_abnormal'].append('NULL')
+        else:
+            incoming_mes['penanda_abnormal'].append(mes[6])
+
     elif mes[0] == 'L':
         pass
 
 print(incoming_mes)
-
 my_db = CONNECT_db()
-INSERT_db(incoming_mes, my_db, 'result')
+INSERT_db_astm(incoming_mes, my_db, 'result')
 my_db.commit()
-
-'''mes_bytes = bytes(mes0, 'utf-8')
-mes_astm = astm.codec.decode_record(mes_bytes,'utf-8')
-print(mes_astm)'''

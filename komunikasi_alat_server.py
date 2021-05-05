@@ -1,6 +1,5 @@
+  
 import socket
-from _thread import *
-import threading
 
 HOST = '127.0.0.1'  # The server's hostname or IP address
 PORT = 5050        # The port used by the server
@@ -21,9 +20,17 @@ def listener_server():
     list_messages=[]
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
-        print('Socket binded to port ', PORT)
         s.listen(5)
-        print('Socket is listening')
+        ssocket, addr = s.accept() #ssocket stands for server socket
+        with ssocket:
+            s.ioctl(socket.SIO_KEEPALIVE_VALS, (1, 10000, 3000))
+            print('Connected to ', addr)
+            while True:
+                data = ssocket.recv(10240)
+                return data.decode()
+                if not data:
+                    break
+                ssocket.sendall(data.decode())
         
         while True:
             ssocket, addr = s.accept() #ssocket stands for server socket
@@ -33,10 +40,10 @@ def listener_server():
             print('Thread Number : ' + str(ThreadCount))
             print(list_messages)
         s.close()
-    return list_messages
+    
         
 if __name__ == '__main__':
     while True:
-        mes = listener_server()
-        print(mes)  
+        listener_server()
+          
 

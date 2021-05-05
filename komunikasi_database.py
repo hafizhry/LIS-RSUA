@@ -16,9 +16,6 @@ def CONNECT_db():
     except Error as e:
         return print(e)
     
-'''def CHECK_COL_db():
-    Function that checks whether the column of the data is exists within the database. 
-    If the column doesn't exist, then the function will make a column from the keys of the dictionary'''
 
 def INSERT_db(mydict, db_name, db_table):
     '''Function that insert data into a database'''
@@ -29,6 +26,42 @@ def INSERT_db(mydict, db_name, db_table):
     sql = "INSERT INTO %s ( %s ) VALUES ( %s );" % (db_table, columns, placeholders)
     cursor.execute(sql, list(mydict.values()))
     print(sql)
+
+def INSERT_db_astm(mydict, db_name, db_table):
+    cursor = db_name.cursor()
+    temp_mydict = {}
+    length = len(mydict['parameter'])
+    if length > 1:
+        idx = 0
+        while idx < length-1:
+            temp_mydict['barcode'] = mydict['barcode']
+            temp_mydict['nama_pasien'] = mydict['nama_pasien']
+            temp_mydict['jenis_kelamin'] = mydict['jenis_kelamin']
+            temp_mydict['tanggal_lahir'] = mydict['tanggal_lahir']
+            temp_mydict['parameter'] = mydict['parameter'][idx]
+            temp_mydict['nilai'] = mydict['nilai'][idx]
+            temp_mydict['satuan'] = mydict['satuan'][idx]
+            temp_mydict['nilai_acuan'] = mydict['nilai_acuan'][idx]
+            temp_mydict['penanda_abnormal'] = mydict['penanda_abnormal'][idx]
+            print(temp_mydict)
+            INSERT_db(temp_mydict, db_name, db_table)
+            idx += 1
+
+
+    else:
+        temp_mydict['barcode'] = mydict['barcode']
+        temp_mydict['nama_pasien'] = mydict['nama_pasien']
+        temp_mydict['jenis_kelamin'] = mydict['jenis_kelamin']
+        temp_mydict['tanggal_lahir'] = mydict['tanggal_lahir']
+        temp_mydict['parameter'] = mydict['parameter'][0]
+        temp_mydict['nilai'] = mydict['nilai'][0]
+        temp_mydict['satuan'] = mydict['satuan'][0]
+        temp_mydict['nilai_acuan'] = mydict['nilai_acuan'][0]
+        temp_mydict['penanda_abnormal'] = mydict['penanda_abnormal'][0]
+        print(temp_mydict)
+        INSERT_db(temp_mydict, db_name, db_table)
+
+    
 
 if __name__ == '__main__':
     mes = {
