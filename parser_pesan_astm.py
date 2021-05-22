@@ -1,8 +1,14 @@
-import astm
 from datetime import datetime
 from komunikasi_database import *
 
+'''Berikut merupakan API yang berfungsi sebagai parser pesan ASTM dan 
+penghubung pesan antara alat lab dengan web app atau basis data. 
+API ini hanya mengakomodasi pesan ASTM dari dokumen ASTM E1394-97'''
+
 def is_number(string):
+    '''Fungsi untuk mengetahui apakah nilai berupa angka atau bukan.
+    Menerima input berupa string, menghasilkan luaran True apabila masukan berupa angka,
+    menghasilkan luaran False apabila masukan bukan angka'''
     try:
         float(string)
         return True
@@ -10,31 +16,38 @@ def is_number(string):
         return False
 
 def is_null(string):
+    '''Fungsi ini melakukan pengecekan apakah kolom kosong atau tidak.
+    Apabila kolom kosong akan menghasilkan luaran True, selain itu akan menghasilkan luaran False'''
     if string == "":
         return True
     return False
 
 def parse_message_astm(messages):  
-    mes_split = []
-    incoming_mes = {"barcode" : [],
+    '''Fungsi ini menerima masukan berupa pesan ASTM dari instrumen laboratorium
+    kemudian dilakukan parsing pesan dengan memanfaatkan fungsi splitlines() dan split()
+    dari built-in library python. Luaran dari fungsi ini adalah dictionary yang berisi
+    informasi hasil parsing pesan ASTM berupa barcode, nama pasien, tanggal lahir, 
+    jenis kelamin, parameter, nilai, satuan, dan penanda abnormal.'''
+
+    mes_split = [] # inisialisasi list
+    incoming_mes = {"barcode" : [], # inisialisasi dictionary
             "nama_pasien" : [],
             "tanggal_lahir" : [],
             "jenis_kelamin" : [],
             "parameter" : [],
             "nilai" : [],
             "satuan" : [],
-            "nilai_acuan" : [],
             "penanda_abnormal" : [],}
 
-    mes_split = messages.splitlines()
+    mes_split = messages.splitlines() # membagi pesan ke dalam list berdasarkan baris
 
-    for mes in mes_split:
+    for mes in mes_split: # melakukan rekursi untuk setiap pesan dalam list pesan
         if mes[0] == 'H':
             pass
         elif mes[0] == 'P':
-            mes = mes.split('|')
-            incoming_mes['barcode'] = int(mes[4])
-            incoming_mes['nama_pasien'] = mes[5]
+            mes = mes.split('|') # membagi pesan ke dalam list berdasarkan karakter pipelines '|'
+            incoming_mes['barcode'] = str(mes[4])
+            incoming_mes['nama_pasien'] = mes[5].removeprefix('^').replace('^',' ')
             incoming_mes['tanggal_lahir'] = str(datetime.strptime(mes[7], "%Y%m%d").date())
             incoming_mes['jenis_kelamin'] = mes[8]
         elif mes[0] == 'C':
@@ -43,7 +56,7 @@ def parse_message_astm(messages):
             pass
         elif mes[0] == 'R':
             mes = mes.split('|')
-            incoming_mes['parameter'].append(mes[2])
+            incoming_mes['parameter'].append(mes[2].removeprefix('^^^^'))
 
             if is_number(mes[3]):
                 incoming_mes['nilai'].append(float(mes[3]))
@@ -55,11 +68,6 @@ def parse_message_astm(messages):
             else:
                 incoming_mes['satuan'].append(mes[4])
 
-            if is_null(mes[5]):
-                incoming_mes['nilai_acuan'].append('NULL')
-            else:
-                incoming_mes['nilai_acuan'].append(mes[5])
-
             if is_null(mes[6]):
                 incoming_mes['penanda_abnormal'].append('NULL')
             else:
@@ -68,10 +76,8 @@ def parse_message_astm(messages):
         elif mes[0] == 'L':
             pass
 
-    print(incoming_mes)
-    my_db = CONNECT_db()
-    INSERT_db_astm(incoming_mes, my_db, 'result')
-    my_db.commit()
+    print(incoming_mes) # menampilkan hasil parsing dalam bentuk dictionary
+    INSERT_db_astm(incoming_mes,'hasil_alat')
 
 
 if __name__ == '__main__':

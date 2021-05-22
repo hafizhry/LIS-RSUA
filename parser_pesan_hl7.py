@@ -7,8 +7,12 @@ penghubung pesan antara alat lab dengan web app atau basis data.
 API ini hanya mengakomodasi pesan ORU_R01 '''
 
 def parse_message_hl7(mes):
-    '''Function that produce a parsed version of the HL7 message given'''
-    parsed_mes = hl7.parse(mes, encoding='utf-8')
+    '''Fungsi ini menerima masukan berupa pesan HL7 dari instrumen laboratorium
+    kemudian dilakukan parsing pesan memanfaatkan library hl7. Luaran dari fungsi
+    ini adalah dictionary yang berisi informasi hasil parsing pesan HL7 berupa informasi
+    barcode, nama pasien, tanggal lahir, jenis kelamin, parameter, nilai, satuan, dan penanda abnormal.'''
+    
+    parsed_mes = hl7.parse(mes, encoding='utf-8') # melakukan parsing menggunakan fungsi parse() dari library hl7
     incoming_mes = {
         "barcode" : str(parsed_mes[1][3]),
         "nama_pasien" : str(parsed_mes[1][5]),
@@ -17,13 +21,10 @@ def parse_message_hl7(mes):
         "parameter" : str(parsed_mes[3][3]),
         "nilai" : str(parsed_mes[3][5]),
         "satuan" : str(parsed_mes[3][6]),
-        "nilai_acuan" : str(parsed_mes[3][7]),
         "penanda_abnormal" : str(parsed_mes[3][8]),
     }
-    print(incoming_mes)
-    my_db = CONNECT_db()
-    INSERT_db(incoming_mes, my_db, 'result')
-    my_db.commit()
+    print(incoming_mes) # menampilkan hasil parsing dalam bentuk dictionary
+    INSERT_db(incoming_mes,'hasil_alat')
 
    
 if __name__ == '__main__':

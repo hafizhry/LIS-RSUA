@@ -3,13 +3,14 @@ from mysql.connector import Error, connect
 from getpass import getpass
 
 def CONNECT_db():
-    '''Function that connect the API to a database'''
+    '''Fungsi ini digunakan untuk menghubungkan API ke basis data.
+    Fungsi ini tidak menerima masukan dan tidak menghasilkan luaran.'''
     try:
         connected_db = mysql.connector.connect(
             host='localhost', 
-            user='root', # user=input('Enter username:'),
-            password='', # password=getpass('Enter password:'),
-            database='laravel_crud' # database=input('Enter database name:')
+            user='root',
+            password='',
+            database='laravel_crud2' 
             )
         print('Connected to database')
         return connected_db
@@ -17,8 +18,10 @@ def CONNECT_db():
         return print(e)
     
 
-def INSERT_db(mydict, db_name, db_table):
-    '''Function that insert data into a database'''
+def INSERT_db(mydict, db_table):
+    '''Fungsi ini digunakan untuk memasukkan data ke dalam basis data.
+    Data yang dimasukkan adalah data hasil parsing dari API'''
+    db_name = CONNECT_db()
     cursor = db_name.cursor()
     
     placeholders = ', '.join(['%s'] * len(mydict))
@@ -26,8 +29,10 @@ def INSERT_db(mydict, db_name, db_table):
     sql = "INSERT INTO %s ( %s ) VALUES ( %s );" % (db_table, columns, placeholders)
     cursor.execute(sql, list(mydict.values()))
     print(sql)
+    db_name.commit()
 
-def INSERT_db_astm(mydict, db_name, db_table):
+def INSERT_db_astm(mydict, db_table):
+    db_name = CONNECT_db()
     cursor = db_name.cursor()
     temp_mydict = {}
     length = len(mydict['parameter'])
@@ -41,13 +46,10 @@ def INSERT_db_astm(mydict, db_name, db_table):
             temp_mydict['parameter'] = mydict['parameter'][idx]
             temp_mydict['nilai'] = mydict['nilai'][idx]
             temp_mydict['satuan'] = mydict['satuan'][idx]
-            temp_mydict['nilai_acuan'] = mydict['nilai_acuan'][idx]
             temp_mydict['penanda_abnormal'] = mydict['penanda_abnormal'][idx]
             print(temp_mydict)
-            INSERT_db(temp_mydict, db_name, db_table)
+            INSERT_db(temp_mydict, db_table)
             idx += 1
-
-
     else:
         temp_mydict['barcode'] = mydict['barcode']
         temp_mydict['nama_pasien'] = mydict['nama_pasien']
@@ -56,10 +58,10 @@ def INSERT_db_astm(mydict, db_name, db_table):
         temp_mydict['parameter'] = mydict['parameter'][0]
         temp_mydict['nilai'] = mydict['nilai'][0]
         temp_mydict['satuan'] = mydict['satuan'][0]
-        temp_mydict['nilai_acuan'] = mydict['nilai_acuan'][0]
         temp_mydict['penanda_abnormal'] = mydict['penanda_abnormal'][0]
         print(temp_mydict)
-        INSERT_db(temp_mydict, db_name, db_table)
+        INSERT_db(temp_mydict, db_table)
+
 
     
 
@@ -75,4 +77,4 @@ if __name__ == '__main__':
     my_db = CONNECT_db()
         
     INSERT_db(mes, my_db, 'result_tes')
-    #my_db.commit()
+    my_db.commit()

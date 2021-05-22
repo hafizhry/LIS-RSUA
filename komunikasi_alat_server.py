@@ -7,23 +7,31 @@ from parser_pesan_hl7 import *
 HOST = '127.0.0.1'  # The server's hostname or IP address
 PORT = 5050        # The port used by the server
 
+print_lock =threading.Lock()
 
-def threaded(ssocket, list_messages):
+def threaded(ssocket):
     while True:
         data = ssocket.recv(10240)
-        print ("Server received data:", data.decode('utf-8'))
-        #list_messages.append(data.decode('utf-8'))
+        if not data:
+            print('Data missing')
+            print_lock.release()
+            break
 
+        print ("Server received data:", data.decode('utf-8'))
         incoming_mes = data.decode('utf-8')
         if incoming_mes.split('|')[0] == 'MSH':
             parse_message_hl7(incoming_mes)
+            print_lock.release()
+            break
         elif incoming_mes.split('|')[0] == 'H':
             parse_message_astm(incoming_mes)
+            print_lock.release()
+            break
         else:
             print('Format error')
+            print_lock.release()
+            break 
 
-        if not data:
-            break
     ssocket.close()
     print('Socket closed')
 
@@ -38,13 +46,12 @@ def listener_server():
         
         while True:
             ssocket, addr = s.accept() #ssocket stands for server socket
+            print_lock.acquire()
             print('Connected to :', addr[0], ':', addr[1])
-            start_new_thread(threaded, (ssocket,list_messages))
+            start_new_thread(threaded, (ssocket,))
             ThreadCount += 1
             print('Thread Number : ' + str(ThreadCount))
-            #print(list_messages)
         s.close()
-    #return list_messages
         
 if __name__ == '__main__':
     while True:
