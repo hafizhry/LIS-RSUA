@@ -1,21 +1,12 @@
 from datetime import datetime
 from komunikasi_database import *
 
+
 '''Berikut merupakan API yang berfungsi sebagai parser pesan ASTM dan 
 penghubung pesan antara alat lab dengan web app atau basis data. 
 API ini hanya mengakomodasi pesan ASTM dari dokumen ASTM E1394-97'''
 
-def is_number(string):
-    '''Fungsi untuk mengetahui apakah nilai berupa angka atau bukan.
-    Menerima input berupa string, menghasilkan luaran True apabila masukan berupa angka,
-    menghasilkan luaran False apabila masukan bukan angka'''
-    try:
-        float(string)
-        return True
-    except ValueError:
-        return False
-
-def is_null(string):
+def is_empty(string):
     '''Fungsi ini melakukan pengecekan apakah kolom kosong atau tidak.
     Apabila kolom kosong akan menghasilkan luaran True, selain itu akan menghasilkan luaran False'''
     if string == "":
@@ -47,37 +38,39 @@ def parse_message_astm(messages):
         elif mes[0] == 'P':
             mes = mes.split('|') # membagi pesan ke dalam list berdasarkan karakter pipelines '|'
             incoming_mes['barcode'] = str(mes[4])
-            incoming_mes['nama_pasien'] = mes[5].removeprefix('^').replace('^',' ')
+            incoming_mes['nama_pasien'] = str(mes[5].removeprefix('^').replace('^',' '))
             incoming_mes['tanggal_lahir'] = str(datetime.strptime(mes[7], "%Y%m%d").date())
-            incoming_mes['jenis_kelamin'] = mes[8]
+            incoming_mes['jenis_kelamin'] = str(mes[8])
         elif mes[0] == 'C':
             pass
         elif mes[0] == 'O':
             pass
         elif mes[0] == 'R':
             mes = mes.split('|')
-            incoming_mes['parameter'].append(mes[2].removeprefix('^^^^'))
-
-            if is_number(mes[3]):
-                incoming_mes['nilai'].append(float(mes[3]))
-            else:
+            incoming_mes['parameter'].append(str(mes[2].removeprefix('^^^^')))
+            if is_empty(mes[3]):
                 incoming_mes['nilai'].append('NULL')
-
-            if is_null(mes[4]):
+            else:
+                incoming_mes['nilai'].append(str(mes[3]))
+                
+            if is_empty(mes[4]):
                 incoming_mes['satuan'].append('NULL')
             else:
-                incoming_mes['satuan'].append(mes[4])
+                incoming_mes['satuan'].append(str(mes[4]))
 
-            if is_null(mes[6]):
+            if is_empty(mes[6]):
                 incoming_mes['penanda_abnormal'].append('NULL')
             else:
-                incoming_mes['penanda_abnormal'].append(mes[6])
-
+                incoming_mes['penanda_abnormal'].append(str(mes[6]))
         elif mes[0] == 'L':
             pass
 
     print(incoming_mes) # menampilkan hasil parsing dalam bentuk dictionary
-    INSERT_db_astm(incoming_mes,'hasil_alat')
+    print('')
+    try:
+        INSERT_db(incoming_mes, 'hasil_alat')
+    except Error as err:
+        print(err)
 
 
 if __name__ == '__main__':
@@ -107,7 +100,7 @@ if __name__ == '__main__':
     mes1 += 'R|47|^^^^SCAT_DIFF|PNG&R&20010806&R&2001_08_06_12_00_1234567890_DIFF.PNG|||N||||||20010806120000\r'
     mes1 += 'L|1|N\r'
 
-    parse_message_astm(mes1)
+    parse_message_astm(mes0)
 
 
 

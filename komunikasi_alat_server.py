@@ -4,53 +4,75 @@ import threading
 from parser_pesan_astm import *
 from parser_pesan_hl7 import *
 
-HOST = '127.0.0.1'  # The server's hostname or IP address
-PORT = 5050        # The port used by the server
+HOST = '127.0.0.1'  # IP address dari host
+PORT = 5050        # port yang akan digunakan sebagai server/listener
 
-print_lock =threading.Lock()
+print_lock = threading.Lock() # inisialisasi lock untuk thread
+ThreadCount = 0 # variabel pemantau thread yang menyala
 
 def threaded(ssocket):
+    '''Fungsi ini melakukan inisiasi thread apabila terdapat pesan ASTM atau HL7 yang
+    diterima oleh listener. Menerima masukan berupa socket yang telah terkoneksi dengan 
+    port. Setelah itu pesan yang diterima oleh thread ini akan diteruskan ke parser ASTM atau HL7
+    tergantung format pesan yang diterima'''
     while True:
-        data = ssocket.recv(10240)
-        if not data:
-            print('Data missing')
+        print('Thread terbuka')
+        global ThreadCount
+        data = ssocket.recv(102400) # menerima pesan
+        
+        if not data: # apabila tidak ada pesan yang diterima akan mengeluarkan pesan 
+            print('Tidak ada data yang diterima')
             print_lock.release()
-            break
-
-        print ("Server received data:", data.decode('utf-8'))
-        incoming_mes = data.decode('utf-8')
-        if incoming_mes.split('|')[0] == 'MSH':
-            parse_message_hl7(incoming_mes)
-            print_lock.release()
-            break
-        elif incoming_mes.split('|')[0] == 'H':
-            parse_message_astm(incoming_mes)
-            print_lock.release()
+            ThreadCount -= 1
             break
         else:
-            print('Format error')
+            pass
+
+        print ("Listener menerima pesan:")  
+        print(data.decode('utf-8'))
+        incoming_mes = data.decode('utf-8')
+        if incoming_mes.split('|')[0] == 'MSH':
+            parse_message_hl7(incoming_mes) # melakukan parsing untuk pesan HL7
             print_lock.release()
-            break 
+            ThreadCount -= 1
+            break
+        elif incoming_mes.split('|')[0] == 'H':
+            parse_message_astm(incoming_mes) # melakukan parsing untuk pesan ASTM 
+            print_lock.release()
+            ThreadCount -= 1
+            break
+        else:
+            print('Format pesan tidak sesuai')
+            print_lock.release()
+            ThreadCount -= 1
+            break  
 
     ssocket.close()
-    print('Socket closed')
+    print('Thread ditutup\n')
 
 def listener_server():
-    ThreadCount = 0
-    list_messages=[]
+    '''Fungsi ini merupakan listener dari pesan ASTM dan HL7 dari instrumen laboratorium.
+    Fungsi ini tidak menerima masukan apapun dan tidak menghasilkan luaran apapun, melainkan
+    akan berjalan seterusnya hingga terdapat perintah untuk exit.
+    '''
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, PORT))
-        print('Socket binded to port', PORT)
+        try :
+            s.bind((HOST, PORT))
+        except socket.error as e:
+            print(str(e))
+        
+        print('Socket terhubung ke port', PORT)
         s.listen(5)
-        print('Socket is listening')
+        print('Socket siap menerima pesan')
         
         while True:
-            ssocket, addr = s.accept() #ssocket stands for server socket
+            ssocket, addr = s.accept() #ssocket adalah server socket
             print_lock.acquire()
-            print('Connected to :', addr[0], ':', addr[1])
+            print('Terhubung ke :', addr[0], ':', addr[1]) 
             start_new_thread(threaded, (ssocket,))
+            global ThreadCount
             ThreadCount += 1
-            print('Thread Number : ' + str(ThreadCount))
+            print('Thread nomor : ' + str(ThreadCount))
         s.close()
         
 if __name__ == '__main__':

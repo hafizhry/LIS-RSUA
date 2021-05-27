@@ -1,21 +1,9 @@
-import hl7
 import mysql.connector
-from datetime import datetime
-from mysql.connector import Error, connect
-from getpass import getpass
-from parser_pesan_hl7 import *
-from komunikasi_database import *
-from komunikasi_alat_client import *
-from komunikasi_alat_server import *
 
-if __name__ == '__main__':
-    while True:
-        mes = listener_hl7()
-        print('Recieved mes')
-        print(mes)
-        mesHL7 = parse_message(mes)
-        pid = parse_pid(mesHL7)
-
-        my_db = CONNECT_db()
-        INSERT_db(pid, my_db, 'pid')
-        my_db.commit()
+try:
+  cnx = mysql.connector.connect(user='root', database='laravel_crud2')
+  cursor = cnx.cursor()
+  cursor.execute("SELECT * FORM employees")   # Syntax error in query
+  cnx.close()
+except mysql.connector.Error as err:
+  print("Something went wrong: {}".format(err))
